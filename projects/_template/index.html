@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Title – Hands-On Learning Lab</title>
+<script src="../../assets/progress.js"></script>
+<!--
+  HOW TO USE THIS TEMPLATE
+  1. Copy this whole folder and rename it, e.g. projects/grade3-clock-town
+  2. Change PROJECT below (slug MUST match the slug in /projects.js)
+  3. Put your interactive activity inside <div id="activity"> (an image, a 3D model, a game...)
+  4. Write your steps in the STEPS list. Each step has: title, goal, show, ask[], explain, look, stuck
+  5. Add the project to /projects.js with the same number of steps
+-->
+<style>
+  :root{--bg:#fff8ec;--ink:#2b2d42;--muted:#6b7280;--line:#eadfcb;--accent:#ff7a00;--green:#43a047;--blue:#1e88e5;--purple:#8e24aa;--red:#e53935}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+  header{padding:14px 20px;background:linear-gradient(90deg,#ffb74d,#ff8a65);color:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  header h1{margin:0;font-size:24px} header .sub{font-size:14px}
+  .back{color:#fff;text-decoration:none;font-weight:800;font-size:14px;background:rgba(255,255,255,.22);padding:7px 12px;border-radius:999px}
+  main{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(320px,1fr);gap:16px;padding:16px;max-width:1400px;margin:0 auto}
+  @media (max-width:900px){main{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 3px 14px rgba(0,0,0,.06)}
+  #activity{min-height:420px;border-radius:14px;background:#f4efe6;display:flex;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:20px}
+  button{font-family:inherit;cursor:pointer;border:2px solid var(--line);background:#fff;padding:7px 12px;border-radius:999px;font-size:14px;font-weight:700}
+  button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.big{background:var(--green);border-color:var(--green);color:#fff}
+  #steps{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+  #steps button{width:36px;height:36px;padding:0;border-radius:50%}
+  #steps button.done{background:#e8f5e9;border-color:var(--green);color:var(--green)}
+  #steps button.done.on{background:var(--green);color:#fff}
+  .pwrap{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+  .pbar{flex:1;height:8px;background:#f1ece2;border-radius:99px;overflow:hidden}
+  .pbar i{display:block;height:100%;background:var(--green);transition:width .3s}
+  .blk{border-left:5px solid;border-radius:10px;padding:8px 12px;background:#fafafa;margin:8px 0}
+  .blk h4{margin:0 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:.6px}
+  .blk p,.blk ul{margin:4px 0;font-size:15px;line-height:1.45} .blk ul{padding-left:20px}
+  .show{border-color:var(--accent)} .show h4{color:var(--accent)}
+  .ask{border-color:var(--blue)} .ask h4{color:var(--blue)}
+  .explain{border-color:var(--green)} .explain h4{color:var(--green)}
+  .look{border-color:var(--purple)} .look h4{color:var(--purple)}
+  .stuck{border-color:var(--red)} .stuck h4{color:var(--red)}
+  .say{font-style:italic;background:#eef7ee;border-radius:8px;padding:6px 10px}
+  .nav{display:flex;justify-content:space-between;gap:8px;margin-top:10px}
+  #printGuide{display:none}
+  @media print{header,main{display:none!important}#printGuide{display:block}.pstep{page-break-inside:avoid;border:1px solid #ccc;border-radius:8px;padding:8px 12px;margin:8px 0}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1 id="pTitle"></h1><div class="sub" id="pSub"></div></div>
+  <div><a class="back" href="../../index.html">&larr; All projects</a> <button onclick="window.print()">Print parent guide</button></div>
+</header>
+
+<main>
+  <section class="card">
+    <div id="activity">
+      <!-- PUT YOUR ACTIVITY HERE: an <img>, an <iframe>, a <canvas> with a 3D model, a simple game... -->
+      Your interactive activity goes here.
+    </div>
+  </section>
+
+  <aside class="card">
+    <strong style="color:var(--muted);font-size:14px">PARENT GUIDE · step by step</strong>
+    <div class="pwrap" style="margin-top:8px"><div class="pbar"><i id="pfill"></i></div><span id="ptext"></span></div>
+    <div id="steps"></div>
+    <div id="stepBody"></div>
+    <div class="nav">
+      <button id="prevBtn">&larr; Back</button>
+      <button id="doneBtn">Mark step done</button>
+      <button id="nextBtn" class="big">Next &rarr;</button>
+    </div>
+  </aside>
+</main>
+<div id="printGuide"></div>
+
+<script>
+/* ======================= EDIT THIS PART ======================= */
+const PROJECT = {
+  slug: "grade2-my-new-project",           // must match projects.js
+  title: "My New Project",
+  subtitle: "Grade 2 · Subject · Topic"
+};
+
+const STEPS = [
+  { title: "Step title",
+    goal: "What the child should understand after this step.",
+    show: "What to do in the activity.",
+    ask: ["Question 1?", "Question 2?"],
+    explain: '<div class="say">"What the parent should say."</div>',
+    look: "The answer you expect to hear.",
+    stuck: "An easier way to try if they get stuck." },
+
+  { title: "Second step",
+    goal: "…", show: "…", ask: ["…"], explain: "…", look: "…", stuck: "…" }
+];
+/* ================== NO NEED TO EDIT BELOW ================== */
+
+const $ = id => document.getElementById(id);
+document.title = PROJECT.title + " – Hands-On Learning Lab";
+$("pTitle").textContent = PROJECT.title; $("pSub").textContent = PROJECT.subtitle;
+let idx = 0;
+
+function stepHTML(s, i, print){
+  return `<${print?"h3":"h2"} style="margin:6px 0">Step ${i+1}: ${s.title}</${print?"h3":"h2"}>
+  <div style="color:var(--muted);font-size:14px"><b>Goal:</b> ${s.goal}</div>
+  <div class="blk show"><h4>Do in the activity</h4><p>${s.show}</p></div>
+  <div class="blk ask"><h4>Ask your child</h4><ul>${s.ask.map(a=>`<li>${a}</li>`).join("")}</ul></div>
+  <div class="blk explain"><h4>Explain (say this)</h4>${s.explain}</div>
+  <div class="blk look"><h4>Listen for</h4><p>${s.look}</p></div>
+  <div class="blk stuck"><h4>If they get stuck</h4><p>${s.stuck}</p></div>`;
+}
+function render(){
+  const done = Progress.get(PROJECT.slug).done;
+  $("stepBody").innerHTML = stepHTML(STEPS[idx], idx);
+  document.querySelectorAll("#steps button").forEach((b,j)=>{ b.classList.toggle("on", j===idx); b.classList.toggle("done", done.includes(j)); });
+  $("doneBtn").textContent = done.includes(idx) ? "Done ✓ (undo)" : "Mark step done";
+  $("pfill").style.width = Math.round(done.length/STEPS.length*100) + "%";
+  $("ptext").textContent = `${done.length} of ${STEPS.length} done`;
+  $("prevBtn").disabled = idx===0;
+}
+function go(i){ idx = Math.max(0, Math.min(STEPS.length-1, i)); Progress.setLast(PROJECT.slug, idx); render(); }
+STEPS.forEach((s,i)=>{ const b=document.createElement("button"); b.textContent=i+1; b.title=s.title; b.onclick=()=>go(i); $("steps").appendChild(b); });
+$("prevBtn").onclick = () => go(idx-1);
+$("nextBtn").onclick = () => go(idx+1);
+$("doneBtn").onclick = () => { const was = Progress.get(PROJECT.slug).done.includes(idx); Progress.toggle(PROJECT.slug, idx); render(); if(!was && idx<STEPS.length-1) setTimeout(()=>go(idx+1), 400); };
+$("printGuide").innerHTML = `<h1>${PROJECT.title} — Parent Guide</h1>` + STEPS.map((s,i)=>`<div class="pstep">${stepHTML(s,i,true)}</div>`).join("");
+go(Progress.get(PROJECT.slug).last || 0);
+</script>
+</body>
+</html>

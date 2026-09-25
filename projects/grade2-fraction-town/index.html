@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Our Fraction Town – 3D Learning Model</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="../../assets/progress.js"></script>
+<style>
+  :root{
+    --bg:#fff8ec; --ink:#2b2d42; --muted:#6b7280; --card:#ffffff; --line:#eadfcb;
+    --red:#e53935; --blue:#1e88e5; --yellow:#fbc02d; --green:#43a047; --purple:#8e24aa;
+    --accent:#ff7a00; --ask:#1e88e5; --explain:#43a047; --look:#8e24aa; --stuck:#e53935;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+  header{padding:14px 20px;background:linear-gradient(90deg,#ffb74d,#ff8a65);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  header h1{margin:0;font-size:24px;letter-spacing:.3px}
+  header .sub{font-size:14px;opacity:.95}
+  main{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(340px,1fr);gap:16px;padding:16px;max-width:1500px;margin:0 auto}
+  @media (max-width:980px){main{grid-template-columns:1fr}}
+  .card{background:var(--card);border-radius:18px;box-shadow:0 3px 14px rgba(0,0,0,.07);border:1px solid var(--line)}
+  #viewer{padding:12px;display:flex;flex-direction:column;gap:12px}
+  #canvasWrap{position:relative;height:500px;border-radius:14px;overflow:hidden;background:#cfe8ff}
+  @media (max-width:600px){#canvasWrap{height:380px}}
+  #canvasWrap canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+  #fracCard{position:absolute;top:12px;left:12px;background:rgba(255,255,255,.95);border-radius:16px;padding:10px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 10px rgba(0,0,0,.12);max-width:calc(100% - 24px)}
+  .fr{display:inline-flex;flex-direction:column;align-items:center;font-weight:800;font-size:34px;line-height:1}
+  .fr .ln{width:100%;min-width:44px;height:4px;background:var(--ink);border-radius:2px;margin:4px 0}
+  #num{color:var(--accent)}
+  #sentence{font-size:16px;font-weight:700;max-width:280px}
+  #halfNote{font-size:14px;color:var(--green);font-weight:800;margin-top:3px}
+  #bubble{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) scale(.6);opacity:0;background:#fff;border:5px solid var(--accent);color:var(--accent);font-weight:900;font-size:64px;border-radius:50%;width:120px;height:120px;display:flex;align-items:center;justify-content:center;transition:all .25s;pointer-events:none}
+  #bubble.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  #bubble.wide{width:auto;height:auto;border-radius:22px;font-size:26px;padding:14px 22px;max-width:90%;text-align:center}
+  #info{position:absolute;right:12px;bottom:12px;background:rgba(43,45,66,.9);color:#fff;padding:10px 14px;border-radius:12px;font-size:14px;max-width:260px;display:none}
+  #hint{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.85);padding:6px 10px;border-radius:10px;font-size:12px;color:var(--muted)}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .row .lbl{font-size:13px;font-weight:700;color:var(--muted);margin-right:4px}
+  button{font-family:inherit;cursor:pointer;border:2px solid var(--line);background:#fff;color:var(--ink);padding:7px 12px;border-radius:999px;font-size:14px;font-weight:700;transition:all .15s}
+  button:hover{border-color:#ffb74d}
+  button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.big{background:var(--green);border-color:var(--green);color:#fff}
+  button.big:hover{filter:brightness(1.05)}
+  .dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+  #barWrap{position:relative;padding:18px 4px 4px}
+  #bar{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+  .slot{height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:16px;border:3px solid transparent;transition:all .3s}
+  .slot.off{opacity:.22;filter:grayscale(.6)}
+  .slot.hit{border-color:#ffd600;box-shadow:0 0 0 2px #fff inset}
+  #halfLine{position:absolute;top:6px;bottom:0;left:50%;width:0;border-left:3px dashed var(--ink)}
+  #halfLine span{position:absolute;top:-4px;left:6px;font-size:11px;font-weight:800;background:var(--bg);padding:0 4px;border-radius:4px}
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left}
+  th{font-size:13px;color:var(--muted)}
+  td.f{font-weight:800;color:var(--accent);font-size:17px}
+  h3{margin:4px 0 8px;font-size:17px}
+  /* guide */
+  #guide{padding:16px;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 110px);position:sticky;top:12px;overflow:auto}
+  @media (max-width:980px){#guide{max-height:none;position:static}}
+  #steps{display:flex;flex-wrap:wrap;gap:6px}
+  #steps button{width:36px;height:36px;padding:0;border-radius:50%}
+  .stepTitle{font-size:21px;margin:0}
+  .goal{font-size:14px;color:var(--muted);margin-top:2px}
+  .blk{border-left:5px solid;border-radius:10px;padding:8px 12px;background:#fafafa}
+  .blk h4{margin:0 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:.6px}
+  .blk p,.blk ul{margin:4px 0;font-size:15px;line-height:1.45}
+  .blk ul{padding-left:20px}
+  .show{border-color:var(--accent)} .show h4{color:var(--accent)}
+  .ask{border-color:var(--ask)} .ask h4{color:var(--ask)}
+  .explain{border-color:var(--explain)} .explain h4{color:var(--explain)}
+  .look{border-color:var(--look)} .look h4{color:var(--look)}
+  .stuck{border-color:var(--stuck)} .stuck h4{color:var(--stuck)}
+  .say{font-style:italic;background:#eef7ee;border-radius:8px;padding:6px 10px;margin:6px 0}
+  .navRow{display:flex;justify-content:space-between;gap:8px}
+  .back{color:#fff;text-decoration:none;font-weight:800;font-size:14px;background:rgba(255,255,255,.22);padding:7px 12px;border-radius:999px}
+  #steps button.done{background:#e8f5e9;border-color:var(--green);color:var(--green)}
+  #steps button.done.on{background:var(--green);color:#fff}
+  #doneBtn.isDone{background:#e8f5e9;border-color:var(--green);color:var(--green)}
+  .pwrap{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+  .pbar{flex:1;height:8px;background:#f1ece2;border-radius:99px;overflow:hidden}
+  .pbar i{display:block;height:100%;background:var(--green);transition:width .3s}
+  #printGuide{display:none}
+  @media print{
+    header,main{display:none!important}
+    #printGuide{display:block;padding:0 10px;font-size:12.5px}
+    #printGuide .pstep{page-break-inside:avoid;border:1px solid #ccc;border-radius:8px;padding:8px 12px;margin:8px 0}
+    #printGuide .blk{background:#fff;padding:4px 10px;margin:4px 0}
+    #printGuide .blk p,#printGuide .blk ul{font-size:12.5px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Our Fraction Town &mdash; 3D Model</h1>
+    <div class="sub">Grade II Math &middot; Unit 7: Fractions (parts of a group) &middot; Practice at home before the group project</div>
+  </div>
+  <div class="row">
+    <a class="back" href="../../index.html">&larr; All projects</a>
+    <button id="soundBtn" class="on" title="Read counts aloud">Voice: ON</button>
+    <button id="printBtn">Print parent guide</button>
+  </div>
+</header>
+
+<main>
+  <section id="viewer" class="card">
+    <div id="canvasWrap">
+      <canvas id="c"></canvas>
+      <div id="fracCard">
+        <div class="fr"><span id="num">10</span><span class="ln"></span><span id="den">10</span></div>
+        <div><div id="sentence"></div><div id="halfNote"></div></div>
+      </div>
+      <div id="bubble"></div>
+      <div id="info"></div>
+      <div id="hint">Drag to turn &middot; Scroll / pinch to zoom &middot; Tap a building</div>
+    </div>
+
+    <div class="row" id="filters">
+      <span class="lbl">Show me:</span>
+    </div>
+    <div class="row">
+      <span class="lbl">Tap a building to:</span>
+      <button data-mode="look" class="on">Just look</button>
+      <button data-mode="chimney">Add / remove chimney</button>
+      <button data-mode="paint">Paint red / unpaint</button>
+      <span style="flex:1"></span>
+      <button id="countBtn" class="big">Count with me</button>
+      <button id="resetTown">Reset town</button>
+      <button id="resetView">Reset view</button>
+    </div>
+
+    <div id="barWrap">
+      <div id="halfLine"><span>HALF</span></div>
+      <div id="bar"></div>
+    </div>
+
+    <div>
+      <h3>My Town in Fractions (updates live)</h3>
+      <table id="liveTable"></table>
+    </div>
+  </section>
+
+  <aside id="guide" class="card">
+    <div class="row" style="justify-content:space-between">
+      <strong style="font-size:15px;color:var(--muted)">PARENT GUIDE &middot; step by step</strong>
+      <span id="stepCount" style="font-size:13px;color:var(--muted)"></span>
+    </div>
+    <div class="pwrap"><div class="pbar"><i id="pfill" style="width:0"></i></div><span id="ptext">0 done</span><button id="resetProg" style="padding:3px 9px;font-size:12px">Reset</button></div>
+    <div id="steps"></div>
+    <div id="stepBody"></div>
+    <div class="navRow">
+      <button id="prevBtn">&larr; Back</button>
+      <button id="doneBtn">Mark step done</button>
+      <button id="nextBtn" class="big">Next step &rarr;</button>
+    </div>
+  </aside>
+</main>
+
+<div id="printGuide"></div>
+
+<script>
+/* ============================================================
+   DATA: 10 buildings, designed to match the school sheet example
+   red 5/10 (=1/2), chimneys 3/10, tall 4/10
+   ============================================================ */
+const RED = 0xe53935, GREY = 0x90a4ae;
+const BUILDINGS = [
+  {id:1, name:'House',       type:'house', w:1.7,d:1.6,h:1.4, rh:0.8, color:RED,      roof:0x6d4c41, chimney:true,  tall:false, shape:'Cube + triangular prism roof', row:0, x:-6},
+  {id:2, name:'School',      type:'box',   w:2.3,d:1.6,h:3.4,          color:0x1e88e5,             chimney:false, tall:true,  shape:'Cuboid (box)', sign:'SCHOOL', row:0, x:-3},
+  {id:3, name:'Shop',        type:'box',   w:2.0,d:1.6,h:1.5,          color:RED,                  chimney:false, tall:false, shape:'Cuboid (box)', sign:'SHOP', row:0, x:0},
+  {id:4, name:'Tower',       type:'cyl',   r:0.8,h:3.4, cone:true,     color:0xfdd835, roof:0x1e88e5, chimney:false, tall:true, shape:'Cylinder + cone roof', row:0, x:3},
+  {id:5, name:'House',       type:'house', w:1.7,d:1.6,h:1.4, rh:0.8, color:RED,      roof:0x6d4c41, chimney:true,  tall:false, shape:'Cube + triangular prism roof', row:0, x:6},
+  {id:6, name:'Hospital',    type:'box',   w:2.1,d:1.6,h:3.2,          color:0xf5f5f5,             chimney:false, tall:true,  shape:'Cuboid (box)', sign:'+', row:1, x:-6},
+  {id:7, name:'Bakery',      type:'box',   w:1.9,d:1.6,h:1.5,          color:RED,                  chimney:true,  tall:false, shape:'Cuboid (box)', sign:'BAKERY', row:1, x:-3},
+  {id:8, name:'Library',     type:'house', w:1.8,d:1.6,h:1.4, rh:0.8, color:0x43a047, roof:0x5d4037, chimney:false, tall:false, shape:'Cube + triangular prism roof', row:1, x:0},
+  {id:9, name:'Apartments',  type:'box',   w:1.7,d:1.6,h:3.8,          color:RED,                  chimney:false, tall:true,  shape:'Cuboid (box)', row:1, x:3},
+  {id:10,name:'Post Office', type:'cyl',   r:0.85,h:1.5, cone:false,   color:0x8e24aa,             chimney:false, tall:false, shape:'Cylinder', sign:'POST', row:1, x:6},
+];
+BUILDINGS.forEach(b=>{ b.origColor=b.color; b.origChimney=b.chimney; b.red = b.color===RED; b.round = b.type==='cyl'; });
+
+const FILTERS = {
+  all:      {label:'All buildings', dot:'#ff7a00', test:b=>true,        phrase:'buildings in our town'},
+  red:      {label:'Red',           dot:'#e53935', test:b=>b.red,       phrase:'are red'},
+  notred:   {label:'Not red',       dot:'#90a4ae', test:b=>!b.red,      phrase:'are NOT red'},
+  chimney:  {label:'Chimney',       dot:'#5d4037', test:b=>b.chimney,   phrase:'have a chimney'},
+  nochim:   {label:'No chimney',    dot:'#bcaaa4', test:b=>!b.chimney,  phrase:'have NO chimney'},
+  tall:     {label:'Tall',          dot:'#1e88e5', test:b=>b.tall,      phrase:'are tall'},
+  short:    {label:'Short',         dot:'#90caf9', test:b=>!b.tall,     phrase:'are short'},
+  round:    {label:'Round (cylinder)', dot:'#8e24aa', test:b=>b.round,  phrase:'are round (cylinders)'},
+};
+
+/* ============================================================
+   THREE.JS SCENE
+   ============================================================ */
+const canvas = document.getElementById('c');
+const wrap = document.getElementById('canvasWrap');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xcfe8ff);
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0xb0a080, 0.75));
+const sun = new THREE.DirectionalLight(0xffffff, 0.75);
+sun.position.set(-8,18,10); sun.castShadow = true;
+sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-14,right:14,top:14,bottom:-14,near:1,far:50});
+scene.add(sun);
+
+function lam(color, extra){ return new THREE.MeshLambertMaterial(Object.assign({color, transparent:true}, extra||{})); }
+function mesh(geo, mat, cast=true){ const m=new THREE.Mesh(geo,mat); m.castShadow=cast; m.receiveShadow=true; return m; }
+
+// Cardboard base (A3 feel)
+const base = mesh(new THREE.BoxGeometry(19,0.3,12.5), lam(0xc9a46c,{transparent:false}), false);
+base.position.y = -0.15; scene.add(base);
+// Road
+const road = mesh(new THREE.PlaneGeometry(19,2.2), lam(0x546e7a,{transparent:false}), false);
+road.rotation.x = -Math.PI/2; road.position.y = 0.01; scene.add(road);
+for(let x=-8.5;x<=8.5;x+=1.6){
+  const dash = mesh(new THREE.PlaneGeometry(0.8,0.12), lam(0xffffff,{transparent:false}), false);
+  dash.rotation.x=-Math.PI/2; dash.position.set(x,0.02,0); scene.add(dash);
+}
+// Footpaths
+[-1.35,1.35].forEach(z=>{ const p=mesh(new THREE.PlaneGeometry(19,0.5), lam(0xe0d6c2,{transparent:false}), false); p.rotation.x=-Math.PI/2; p.position.set(0,0.012,z); scene.add(p); });
+
+// Text texture helper
+function textTexture(text, {w=256,h=64,bg='#fff',fg='#222',font='bold 40px Trebuchet MS'}={}){
+  const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+  const g=cv.getContext('2d'); g.fillStyle=bg; g.fillRect(0,0,w,h);
+  g.fillStyle=fg; g.font=font; g.textAlign='center'; g.textBaseline='middle'; g.fillText(text,w/2,h/2+2);
+  const t=new THREE.CanvasTexture(cv); t.anisotropy=4; return t;
+}
+// Street sign
+(function(){
+  const pole = mesh(new THREE.CylinderGeometry(0.06,0.06,2,8), lam(0x555555,{transparent:false}));
+  pole.position.set(-8.6,1,1.55); scene.add(pole);
+  const board = mesh(new THREE.BoxGeometry(2.2,0.5,0.06), new THREE.MeshLambertMaterial({map:textTexture('MAIN STREET',{bg:'#2e7d32',fg:'#fff',w:512,h:112,font:'bold 64px Trebuchet MS'})}));
+  board.position.set(-7.7,1.9,1.55); scene.add(board);
+})();
+// Trees
+function tree(x,z,s=1){
+  const t=new THREE.Group();
+  const trunk=mesh(new THREE.CylinderGeometry(0.12*s,0.15*s,0.6*s,8), lam(0x795548,{transparent:false}));
+  trunk.position.y=0.3*s; t.add(trunk);
+  const top=mesh(new THREE.ConeGeometry(0.55*s,1.3*s,10), lam(0x2e7d32,{transparent:false}));
+  top.position.y=1.2*s; t.add(top);
+  t.position.set(x,0,z); scene.add(t);
+}
+[[-8.6,-5.4],[-7.8,5.6],[8.6,5.4],[8.4,-5.5],[-4.5,-5.6],[4.6,5.7],[1.5,-5.7],[-1.6,5.7]].forEach(([x,z],i)=>tree(x,z,0.8+0.25*(i%3)));
+
+// Build each building
+const pickables = [];
+function addWindow(group, x, y, z, rotY=0, size=0.34){
+  const win = mesh(new THREE.PlaneGeometry(size,size), lam(0x90caf9), false);
+  win.position.set(x,y,z); win.rotation.y=rotY; group.add(win);
+  const frame = mesh(new THREE.PlaneGeometry(size+0.08,size+0.08), lam(0xffffff), false);
+  frame.position.set(x,y,z-0.005*Math.cos(rotY)); frame.rotation.y=rotY; group.add(frame);
+}
+function labelSprite(b){
+  const cv=document.createElement('canvas'); cv.width=320; cv.height=110;
+  const g=cv.getContext('2d');
+  g.fillStyle='rgba(255,255,255,0.95)';
+  const r=24; g.beginPath(); g.moveTo(r,0); g.arcTo(320,0,320,110,r); g.arcTo(320,110,0,110,r); g.arcTo(0,110,0,0,r); g.arcTo(0,0,320,0,r); g.fill();
+  g.fillStyle='#ff7a00'; g.beginPath(); g.arc(55,55,38,0,Math.PI*2); g.fill();
+  g.fillStyle='#fff'; g.font='bold 44px Trebuchet MS'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(b.id,55,57);
+  g.fillStyle='#2b2d42'; g.font='bold 34px Trebuchet MS'; g.textAlign='left'; g.fillText(b.name,104,57);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv), transparent:true, depthWrite:false}));
+  sp.scale.set(2.3,0.8,1); return sp;
+}
+
+BUILDINGS.forEach(b=>{
+  const g = new THREE.Group();
+  const bodyMat = lam(b.color);
+  b.bodyMat = bodyMat;
+  let top; // height of roof top
+  const frontZ = b.type==='cyl' ? b.r : b.d/2;
+
+  if(b.type==='house' || b.type==='box'){
+    const body = mesh(new THREE.BoxGeometry(b.w,b.h,b.d), bodyMat);
+    body.position.y=b.h/2; g.add(body);
+    if(b.type==='house'){
+      const sh=new THREE.Shape(); sh.moveTo(-b.d/2-0.12,0); sh.lineTo(b.d/2+0.12,0); sh.lineTo(0,b.rh); sh.lineTo(-b.d/2-0.12,0);
+      const rg=new THREE.ExtrudeGeometry(sh,{depth:b.w+0.2,bevelEnabled:false});
+      rg.translate(0,0,-(b.w+0.2)/2); rg.rotateY(Math.PI/2);
+      const roof=mesh(rg, lam(b.roof)); roof.position.y=b.h; g.add(roof);
+      top=b.h+b.rh;
+    } else {
+      const slab=mesh(new THREE.BoxGeometry(b.w+0.14,0.12,b.d+0.14), lam(0x455a64)); slab.position.y=b.h+0.06; g.add(slab);
+      top=b.h+0.12;
+    }
+    // door
+    const door=mesh(new THREE.PlaneGeometry(0.45,0.8), lam(0x6d4c41), false); door.position.set(0,0.4,frontZ+0.012); g.add(door);
+    // windows: side columns
+    for(let y=0.75; y+0.2<b.h-0.08; y+=0.8){ addWindow(g,-b.w*0.3,y,frontZ+0.015); addWindow(g,b.w*0.3,y,frontZ+0.015); }
+    // centre column above door for tall buildings
+    if(b.tall){ for(let y=1.9; y+0.2<b.h-0.08; y+=0.8) addWindow(g,0,y,frontZ+0.015); }
+  } else { // cylinder
+    const body=mesh(new THREE.CylinderGeometry(b.r,b.r,b.h,28), bodyMat); body.position.y=b.h/2; g.add(body);
+    if(b.cone){ const cone=mesh(new THREE.ConeGeometry(b.r+0.15,1.1,28), lam(b.roof)); cone.position.y=b.h+0.55; g.add(cone); top=b.h+1.1; }
+    else { const cap=mesh(new THREE.CylinderGeometry(b.r+0.08,b.r+0.08,0.12,28), lam(0x455a64)); cap.position.y=b.h+0.06; g.add(cap); top=b.h+0.12; }
+    const dz=Math.sqrt(b.r*b.r-0.0)+0.012;
+    const door=mesh(new THREE.PlaneGeometry(0.42,0.8), lam(0x6d4c41), false); door.position.set(0,0.4,dz); g.add(door);
+    [-0.45,0.45].forEach(x=>{ const a=Math.asin(x/b.r); for(let y=0.75;y+0.2<b.h-0.08;y+=0.8) addWindow(g, Math.sin(a)*(b.r+0.015), y, Math.cos(a)*(b.r+0.015), a, 0.3); });
+    if(b.tall){ for(let y=1.9;y+0.2<b.h-0.08;y+=0.8) addWindow(g,0,y,b.r+0.015,0,0.3); }
+  }
+  // sign
+  if(b.sign){
+    const isCross=b.sign==='+';
+    const tex=textTexture(b.sign,{w:isCross?128:256,h:64,bg:isCross?'#ffffff':'#fff3e0',fg:isCross?'#2e7d32':'#bf360c',font:isCross?'bold 60px Arial':'bold 36px Trebuchet MS'});
+    const sw=isCross?0.5:1.0;
+    const sign=mesh(new THREE.PlaneGeometry(sw,0.28), new THREE.MeshLambertMaterial({map:tex,transparent:true}), false);
+    sign.position.set(0,1.05,frontZ+0.02); g.add(sign);
+  }
+  // chimney (always built, visibility toggles)
+  const ch=new THREE.Group();
+  const stack=mesh(new THREE.BoxGeometry(0.32,0.9,0.32), lam(0x5d4037)); stack.position.y=0.45; ch.add(stack);
+  const capC=mesh(new THREE.BoxGeometry(0.42,0.1,0.42), lam(0x3e2723)); capC.position.y=0.92; ch.add(capC);
+  const smoke=mesh(new THREE.SphereGeometry(0.18,10,8), lam(0xeeeeee,{opacity:0.8}), false); smoke.position.set(0.05,1.2,0); ch.add(smoke);
+  const smoke2=mesh(new THREE.SphereGeometry(0.13,10,8), lam(0xeeeeee,{opacity:0.7}), false); smoke2.position.set(0.18,1.45,0); ch.add(smoke2);
+  const cx = b.type==='cyl' ? 0.42 : Math.min(0.5,b.w*0.28);
+  const cz = b.type==='cyl' ? -0.22 : -0.28;
+  ch.position.set(cx,b.type==='house'?b.h:(b.type==='cyl'?b.h:b.h+0.1),cz);
+  g.add(ch); b.chimneyObj=ch; b.smoke=[smoke,smoke2];
+  ch.visible=b.chimney;
+
+  // highlight ring
+  const ringR = b.type==='cyl'? b.r+0.35 : Math.max(b.w,b.d)*0.72+0.2;
+  const ring = new THREE.Mesh(new THREE.RingGeometry(ringR, ringR+0.22, 48), new THREE.MeshBasicMaterial({color:0xffd600, transparent:true, opacity:0.95, side:THREE.DoubleSide}));
+  ring.rotation.x=-Math.PI/2; ring.position.set(b.x, 0.03, b.row===0?-3.3:3.3); ring.visible=false; scene.add(ring); b.ring=ring;
+
+  // label
+  const sp=labelSprite(b); sp.position.set(0, top+1.35, 0); g.add(sp); b.label=sp;
+
+  g.position.set(b.x, 0, b.row===0?-3.3:3.3);
+  if(b.row===1) g.rotation.y=Math.PI;
+  scene.add(g);
+  b.group=g; b.lift=0; b.targetLift=0; b.pulse=0; b.opacity=1; b.targetOpacity=1;
+  g.traverse(o=>{ if(o.isMesh){ o.userData.b=b; pickables.push(o);} });
+});
+
+/* ============================================================
+   CAMERA CONTROLS (drag / zoom / pinch)
+   ============================================================ */
+const target = new THREE.Vector3(0,1,0);
+const DEF = {theta:0.35, phi:0.95, r:24};
+let cam = {...DEF};
+function updateCam(){
+  cam.phi=Math.max(0.2,Math.min(1.45,cam.phi)); cam.r=Math.max(8,Math.min(42,cam.r));
+  camera.position.set(target.x+cam.r*Math.sin(cam.phi)*Math.sin(cam.theta), target.y+cam.r*Math.cos(cam.phi), target.z+cam.r*Math.sin(cam.phi)*Math.cos(cam.theta));
+  camera.lookAt(target);
+}
+const pointers=new Map(); let downPos=null, moved=0, pinchD=0;
+canvas.addEventListener('pointerdown',e=>{ canvas.setPointerCapture(e.pointerId); pointers.set(e.pointerId,{x:e.clientX,y:e.clientY}); if(pointers.size===1){downPos={x:e.clientX,y:e.clientY};moved=0;} if(pointers.size===2){const p=[...pointers.values()]; pinchD=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);} canvas.style.cursor='grabbing'; });
+canvas.addEventListener('pointermove',e=>{
+  if(!pointers.has(e.pointerId)) return;
+  const prev=pointers.get(e.pointerId); const dx=e.clientX-prev.x, dy=e.clientY-prev.y;
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pointers.size===1){ cam.theta-=dx*0.008; cam.phi-=dy*0.006; moved+=Math.abs(dx)+Math.abs(dy); }
+  else if(pointers.size===2){ const p=[...pointers.values()]; const d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y); if(pinchD) cam.r*=pinchD/d; pinchD=d; moved+=10; }
+  updateCam();
+});
+function endPtr(e){
+  if(pointers.size===1 && moved<6 && downPos) pick(e.clientX,e.clientY);
+  pointers.delete(e.pointerId); if(pointers.size<2) pinchD=0; canvas.style.cursor='grab';
+}
+canvas.addEventListener('pointerup',endPtr);
+canvas.addEventListener('pointercancel',e=>{pointers.delete(e.pointerId);});
+canvas.addEventListener('wheel',e=>{ e.preventDefault(); cam.r*=1+e.deltaY*0.001; updateCam(); },{passive:false});
+
+const ray=new THREE.Raycaster(), mv=new THREE.Vector2();
+function pick(cx,cy){
+  const rc=canvas.getBoundingClientRect();
+  mv.x=((cx-rc.left)/rc.width)*2-1; mv.y=-((cy-rc.top)/rc.height)*2+1;
+  ray.setFromCamera(mv,camera);
+  const hit=ray.intersectObjects(pickables,false)[0];
+  if(!hit) return;
+  onBuildingTap(hit.object.userData.b);
+}
+
+/* ============================================================
+   STATE / UI
+   ============================================================ */
+let filterKey='all', mode='look', soundOn=true, counting=false;
+const $=id=>document.getElementById(id);
+
+function say(t){ if(!soundOn||!('speechSynthesis' in window)) return; try{ const u=new SpeechSynthesisUtterance(t); u.rate=0.9; u.pitch=1.1; speechSynthesis.speak(u);}catch(e){} }
+
+function onBuildingTap(b){
+  if(counting) return;
+  if(mode==='chimney'){ b.chimney=!b.chimney; b.chimneyObj.visible=b.chimney; b.pulse=1; say(b.chimney?'Chimney added':'Chimney removed'); }
+  else if(mode==='paint'){ b.red=!b.red; b.color = b.red?RED:(b.origColor===RED?GREY:b.origColor); b.bodyMat.color.setHex(b.color); b.pulse=1; say(b.red?'Painted red':'Not red any more'); }
+  else { b.pulse=1; }
+  showInfo(b); refresh();
+}
+function showInfo(b){
+  const el=$('info');
+  el.innerHTML=`<b>#${b.id} ${b.name}</b><br>Colour: ${b.red?'<span style="color:#ff8a80">red</span>':'not red'}<br>${b.tall?'Tall':'Short'} &middot; ${b.chimney?'has a chimney':'no chimney'}<br>Shape: ${b.shape}`;
+  el.style.display='block'; clearTimeout(showInfo.t); showInfo.t=setTimeout(()=>el.style.display='none',4500);
+}
+
+// filter chips
+const filtersEl=$('filters');
+Object.entries(FILTERS).forEach(([k,f])=>{
+  const bt=document.createElement('button'); bt.dataset.f=k; bt.innerHTML=`<span class="dot" style="background:${f.dot}"></span>${f.label}`;
+  bt.onclick=()=>setFilter(k); filtersEl.appendChild(bt);
+});
+document.querySelectorAll('[data-mode]').forEach(bt=>bt.onclick=()=>setMode(bt.dataset.mode));
+function setMode(m){ mode=m; document.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('on',x.dataset.mode===m)); }
+function setFilter(k){ filterKey=k; document.querySelectorAll('[data-f]').forEach(x=>x.classList.toggle('on',x.dataset.f===k)); refresh(); }
+
+function fracText(n,t){
+  if(n===0) return 'none of them';
+  if(n===t) return 'all of them — the whole!';
+  if(n*2===t) return `${n}/${t} = 1/2  (that is HALF!)`;
+  return n*2>t ? 'more than half' : 'less than half';
+}
+
+function refresh(){
+  const f=FILTERS[filterKey], total=BUILDINGS.length;
+  const hits=BUILDINGS.filter(f.test);
+  BUILDINGS.forEach(b=>{
+    const m=f.test(b);
+    b.targetLift = (filterKey!=='all' && m) ? 0.35 : 0;
+    b.targetOpacity = (filterKey==='all' || m) ? 1 : 0.18;
+    b.ring.visible = filterKey!=='all' && m;
+  });
+  $('num').textContent=hits.length; $('den').textContent=total;
+  $('sentence').textContent = filterKey==='all' ? `${total} buildings in all — this is the WHOLE group` : `${hits.length} out of ${total} buildings ${f.phrase}`;
+  $('halfNote').textContent = filterKey==='all' ? 'The bottom number = how many in all' : fracText(hits.length,total);
+  // bar (matching first, so "half" is easy to see)
+  const sorted=[...hits, ...BUILDINGS.filter(b=>!f.test(b))];
+  $('bar').innerHTML = sorted.map(b=>{
+    const m=f.test(b), col='#'+b.color.toString(16).padStart(6,'0');
+    const txt = (b.color===0xf5f5f5||b.color===0xfdd835)?'#333':'#fff';
+    return `<div class="slot ${m?'hit':'off'}" style="background:${col};color:${txt}" title="${b.name}">${b.id}${b.chimney?'<small style="font-size:11px;margin-left:3px">&#9650;</small>':''}</div>`;
+  }).join('');
+  // live table
+  const rows=[['red','Red buildings'],['chimney','Buildings with a chimney'],['tall','Tall buildings'],['short','Short buildings'],['round','Round (cylinder) buildings']];
+  $('liveTable').innerHTML = `<tr><th>Feature</th><th>How many?</th><th>Fraction</th><th>Half?</th></tr>` + rows.map(([k,l])=>{
+    const n=BUILDINGS.filter(FILTERS[k].test).length;
+    const h = n*2===total ? '<b style="color:#43a047">= 1/2</b>' : (n*2>total?'more than half':'less than half');
+    return `<tr><td><span class="dot" style="background:${FILTERS[k].dot}"></span>${l}</td><td>${n} out of ${total}</td><td class="f">${n}/${total}</td><td>${h}</td></tr>`;
+  }).join('');
+}
+
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function countWithMe(){
+  if(counting) return; counting=true; $('countBtn').disabled=true;
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  const f=FILTERS[filterKey]; const hits=BUILDINGS.filter(f.test); const bub=$('bubble');
+  bub.classList.remove('wide');
+  for(let i=0;i<hits.length;i++){
+    hits[i].pulse=1.3; bub.textContent=i+1; bub.classList.add('show'); say(String(i+1));
+    await sleep(950); bub.classList.remove('show'); await sleep(120);
+  }
+  const msg = filterKey==='all' ? `${hits.length} buildings in all!` : `${hits.length} out of ${BUILDINGS.length} ${f.phrase}`;
+  bub.classList.add('wide'); bub.innerHTML = msg + (hits.length*2===BUILDINGS.length && filterKey!=='all' ? '<br><span style="color:#43a047">That is HALF!</span>' : '');
+  bub.classList.add('show'); say(msg.replace('NOT','not').replace('NO','no') + (hits.length*2===BUILDINGS.length && filterKey!=='all'?'. That is half!':''));
+  await sleep(2800); bub.classList.remove('show');
+  counting=false; $('countBtn').disabled=false;
+}
+$('countBtn').onclick=countWithMe;
+$('resetView').onclick=()=>{ cam={...DEF}; updateCam(); };
+$('resetTown').onclick=()=>{ BUILDINGS.forEach(b=>{ b.chimney=b.origChimney; b.chimneyObj.visible=b.chimney; b.color=b.origColor; b.red=b.color===RED; b.bodyMat.color.setHex(b.color); }); refresh(); };
+$('soundBtn').onclick=e=>{ soundOn=!soundOn; e.target.textContent='Voice: '+(soundOn?'ON':'OFF'); e.target.classList.toggle('on',soundOn); if(!soundOn&&'speechSynthesis' in window) speechSynthesis.cancel(); };
+
+/* ============================================================
+   PARENT GUIDE STEPS
+   ============================================================ */
+const STEPS = [
+ { title:'Meet Fraction Town', goal:'Understand the WHOLE group (the bottom number).', filter:'all', mode:'look',
+   show:'Let your child drag the town around and tap a few buildings to read their names. Then press <b>Count with me</b>.',
+   ask:['How many buildings are in our town?','Which building do you like best? Why?'],
+   explain:'<div class="say">"All 10 buildings together are called the <b>whole group</b>. When we make fractions today, the bottom number will always tell us how many there are <b>in all</b> — so our bottom number is 10."</div>',
+   look:'10. They should touch/point to each building once while counting.',
+   stuck:'Count together slowly using the numbers on the labels. Then do the same with 10 real things at home (spoons, blocks, toy cars).' },
+
+ { title:'Red buildings: 5 out of 10', goal:'Read and write a fraction of a group.', filter:'red',
+   show:'Press <b>Red</b>. The red buildings lift up and glow. Press <b>Count with me</b>.',
+   ask:['How many buildings are red?','Out of how many buildings in all?','Can you write it as a fraction?'],
+   explain:'<div class="say">"5 <b>out of</b> 10 buildings are red. We write it like this: 5 on top, a line, 10 at the bottom → <b>5/10</b>. The <b>top number</b> tells how many we are talking about (the red ones). The <b>bottom number</b> tells how many in all."</div><p>Tip: say "out of" every time you point to the line. If the teacher uses the words <i>numerator</i> (top) and <i>denominator</i> (bottom), you can add them now.</p>',
+   look:'"5 out of 10" and writing 5/10 with 5 on top.',
+   stuck:'Write "5 out of 10" in words first, then turn the words "out of" into the fraction line.' },
+
+ { title:'Half! 5/10 = 1/2', goal:'See that half means 2 equal parts.', filter:'red',
+   show:'Look at the coloured bar under the model. The red buildings fill exactly up to the dashed <b>HALF</b> line. Switch between <b>Red</b> and <b>Not red</b>.',
+   ask:['Are there more red buildings or more not-red buildings?','If we make a red team and a not-red team, are the teams equal?','So what part of the town is red?'],
+   explain:'<div class="say">"When we split a group into <b>2 equal parts</b>, each part is called a <b>half</b>. 10 split into 2 equal teams is 5 and 5. So 5 out of 10 is half. We can write <b>5/10 = 1/2</b>."</div>',
+   look:'"They are equal — 5 and 5", "half".',
+   stuck:'Take 10 real objects. Ask your child to share them fairly between two teddies. Each teddy gets 5 → each gets half.' },
+
+ { title:'Chimneys: 3 out of 10', goal:'Find a fraction, and see the two parts make the whole.', filter:'chimney',
+   show:'Press <b>Chimney</b> and zoom in to see the chimneys with smoke. Press <b>Count with me</b>. Then press <b>No chimney</b>.',
+   ask:['How many buildings have a chimney? Write the fraction.','How many do NOT have a chimney? Write that fraction too.','What is 3 + 7? What does that tell us?'],
+   explain:'<div class="say">"3 out of 10 have a chimney → <b>3/10</b>. 7 out of 10 do not → <b>7/10</b>. Together 3 + 7 = 10, which is the whole town again. The parts always add up to the whole!"</div>',
+   look:'3/10 and 7/10; noticing 3 + 7 = 10.',
+   stuck:'Point to each building and ask "chimney — yes or no?". Make two piles of fingers: yes-fingers and no-fingers.' },
+
+ { title:'Tall and short buildings', goal:'Practise making fractions from a feature.', filter:'tall',
+   show:'Press <b>Tall</b>, then <b>Short</b>. Turn the town sideways (drag) to compare heights.',
+   ask:['Which buildings are tall? Tell me their names.','What fraction of the buildings are tall?','What fraction are short?','Is it more than half or less than half that are tall?'],
+   explain:'<div class="say">"4 out of 10 are tall → <b>4/10</b>. 6 out of 10 are short → <b>6/10</b>. The bottom number is still 10 because our town still has 10 buildings."</div>',
+   look:'4/10 tall (School, Tower, Hospital, Apartments), 6/10 short; "less than half are tall".',
+   stuck:'Ask "Is it taller than the house?" for each building to decide tall or short.' },
+
+ { title:'Which is more?', goal:'Compare fractions with the same bottom number.', filter:'tall',
+   show:'Switch between <b>Tall</b> and <b>Chimney</b>, and compare how full the coloured bar is each time.',
+   ask:['Are there more tall buildings or more buildings with a chimney?','Which fraction is bigger: 4/10 or 3/10?','Can you use the &gt; or &lt; sign?'],
+   explain:'<div class="say">"When the bottom numbers are the same, we just look at the top numbers. 4 is more than 3, so <b>4/10 &gt; 3/10</b>. More tall buildings than chimney buildings!"</div>',
+   look:'4/10 &gt; 3/10, explained as "4 is more than 3".',
+   stuck:'Line up 4 blocks and 3 blocks side by side — which line is longer?' },
+
+ { title:'Shapes in our buildings', goal:'Link 2D/3D shapes to the buildings (needed for the model).', filter:'round',
+   show:'Press <b>Round (cylinder)</b>. Tap buildings in <b>Just look</b> mode — the card shows each shape.',
+   ask:['What 3D shape is the School? The Tower? The roof of the House?','What 2D shapes are the windows and doors?','What fraction of the buildings are round?','What could you use at home to make each shape?'],
+   explain:'<div class="say">"The School is a <b>cuboid</b> — like a toothpaste box. The Tower is a <b>cylinder</b> — like a paper roll — with a <b>cone</b> roof like a birthday cap. The House roof is a <b>triangular prism</b> — like a folded card. Windows are <b>squares</b>, doors are <b>rectangles</b>. 2 out of 10 buildings are round → <b>2/10</b>."</div><p>Home materials: juice/toothpaste/medicine boxes (cuboids), tissue or foil rolls (cylinders), dice-like boxes (cubes), folded card (roofs), paper cones.</p>',
+   look:'Correct shape names; 2/10 round.',
+   stuck:'Bring a real box and a paper roll and let them hold and compare with the model.' },
+
+ { title:'HOT question: half with chimneys', goal:'"If half the buildings have chimneys, how many is that?"', filter:'chimney', mode:'chimney',
+   show:'Mode is now <b>Add / remove chimney</b>. Right now 3 have chimneys. Let your child tap buildings to add chimneys until the card says <b>HALF</b>.',
+   ask:['If HALF the buildings had chimneys, how many buildings would that be?','We have 3 now. How many more chimneys do we need?','Explain your answer using a fraction.'],
+   explain:'<div class="say">"Half means 2 equal parts. 10 split into 2 equal parts is 5 and 5. So half of 10 buildings is <b>5 buildings</b>. 5/10 = 1/2. We had 3, so we need 2 more."</div><p>Extension: "What if our town had 8 buildings? How many is half?" (4). "What if it had 6?" (3).</p>',
+   look:'5 buildings; "because 5 + 5 = 10" or "10 shared into 2 equal groups".',
+   stuck:'Use 10 coins: share into two equal piles. One pile = the chimney buildings.' },
+
+ { title:'HOT question: fractions in real life', goal:'"Where do you see fractions in real life?"', filter:'all', mode:'look',
+   show:'Put the screen away for this one and go on a 5-minute <b>fraction hunt</b> around the house.',
+   ask:['Where do you see fractions at home or outside?','Can you find a group where half are the same?','Tell me one fraction about our family.'],
+   explain:'<div class="say">"Whenever we talk about <b>part of a group</b> or <b>part of a whole thing</b>, we are using fractions."</div><ul><li>Family: "2 out of 4 people in our family wear glasses → 2/4"</li><li>Food: half a roti, half a sandwich, sharing a chocolate bar</li><li>Clock: "half past 5"</li><li>Shoes: 1 out of 2 shoes is the left shoe → 1/2</li><li>Fruit bowl: 3 out of 5 fruits are bananas → 3/5</li></ul>',
+   look:'At least 2–3 real examples in their own words.',
+   stuck:'Point at a group (e.g. cutlery on the table) and ask "How many in all? How many are spoons?"' },
+
+ { title:'Record: "My Town in Fractions"', goal:'Practise what they will write on the A4 sheet in class.', filter:'all', mode:'look',
+   show:'Look at the <b>My Town in Fractions</b> table under the model. Ask your child to copy it neatly on paper in this format:',
+   ask:['Total buildings: ____','____ out of ____ buildings are red = ____/____','____ out of ____ buildings have chimneys = ____/____','____ out of ____ buildings are tall = ____/____','Which fraction is half? Which is the biggest?'],
+   explain:'<div class="say">"In class your group town will have different numbers — that\'s fine! First count <b>all</b> the buildings for the bottom number, then count <b>one feature</b> at a time for the top number."</div>',
+   look:'Bottom number is the same (total) in every line; neat writing with a clear fraction line.',
+   stuck:'Fill in the first line together, then let them do the rest alone.' },
+
+ { title:'Practise the presentation', goal:'Describe the town with descriptive and maths language (rubric: Presentation + Knowledge).', filter:'red', mode:'look',
+   show:'Let your child "present" this 3D town to you like a tour guide, pointing at the buildings on screen.',
+   ask:['Can you tell me about your Fraction Town in 5–6 sentences?','Which fraction is your favourite and why?'],
+   explain:'<p>Sample script they can adapt:</p><div class="say">"Welcome to our Fraction Town! Our town has 10 colourful buildings on Main Street. 5 out of 10 buildings are red. That is 5/10, which is one half. 3 out of 10 buildings have chimneys. 4 out of 10 buildings are tall, like the school and the tower. There are more tall buildings than chimney buildings because 4/10 is more than 3/10. Thank you!"</div><p>Useful words: whole, part, half, out of, more than, less than, equal, tall, short, round, colourful, cuboid, cylinder.</p>',
+   look:'Speaks clearly, points at buildings, uses "out of" and "half" correctly.',
+   stuck:'Let them do just 3 sentences first; add one more each practice.' },
+];
+
+let stepIdx=0;
+function stepHTML(s,i,forPrint){
+  return `${forPrint?`<h3>Step ${i+1}: ${s.title}</h3>`:`<h2 class="stepTitle">Step ${i+1}: ${s.title}</h2>`}
+  <div class="goal"><b>Goal:</b> ${s.goal}</div>
+  <div class="blk show"><h4>Do in the model</h4><p>${s.show}</p></div>
+  <div class="blk ask"><h4>Ask your child</h4><ul>${s.ask.map(a=>`<li>${a}</li>`).join('')}</ul></div>
+  <div class="blk explain"><h4>Explain (say this)</h4>${s.explain}</div>
+  <div class="blk look"><h4>Listen for</h4><p>${s.look}</p></div>
+  <div class="blk stuck"><h4>If they get stuck</h4><p>${s.stuck}</p></div>`;
+}
+function goStep(i){
+  stepIdx=Math.max(0,Math.min(STEPS.length-1,i)); const s=STEPS[stepIdx];
+  $('stepBody').innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">${stepHTML(s,stepIdx)}</div>`;
+  $('stepCount').textContent=`${stepIdx+1} of ${STEPS.length}`;
+  document.querySelectorAll('#steps button').forEach((b,j)=>b.classList.toggle('on',j===stepIdx));
+  $('prevBtn').disabled=stepIdx===0;
+  $('nextBtn').textContent= stepIdx===STEPS.length-1 ? 'Done!' : 'Next step →';
+  if(s.filter) setFilter(s.filter);
+  setMode(s.mode||'look');
+  $('guide').scrollTop=0;
+  if(window.Progress) Progress.setLast(SLUG, stepIdx);
+  renderProgress();
+}
+const SLUG='grade2-fraction-town';
+function renderProgress(){
+  const done = window.Progress ? Progress.get(SLUG).done : [];
+  document.querySelectorAll('#steps button').forEach((b,j)=>b.classList.toggle('done',done.includes(j)));
+  const isDone = done.includes(stepIdx);
+  $('doneBtn').textContent = isDone ? 'Done ✓ (undo)' : 'Mark step done';
+  $('doneBtn').classList.toggle('isDone', isDone);
+  $('pfill').style.width = Math.round(done.length/STEPS.length*100)+'%';
+  $('ptext').textContent = `${done.length} of ${STEPS.length} done`;
+}
+$('doneBtn').onclick=()=>{
+  if(!window.Progress) return;
+  const was = Progress.get(SLUG).done.includes(stepIdx);
+  Progress.toggle(SLUG, stepIdx); renderProgress();
+  if(!was && stepIdx<STEPS.length-1) setTimeout(()=>goStep(stepIdx+1), 400);
+};
+$('resetProg').onclick=()=>{ if(confirm('Clear progress for this project?')){ Progress.reset(SLUG); goStep(0);} };
+STEPS.forEach((s,i)=>{ const b=document.createElement('button'); b.textContent=i+1; b.title=s.title; b.onclick=()=>goStep(i); $('steps').appendChild(b); });
+$('prevBtn').onclick=()=>goStep(stepIdx-1);
+$('nextBtn').onclick=()=>{ if(stepIdx<STEPS.length-1) goStep(stepIdx+1); else say('Well done! You are a fraction expert!'); };
+
+// Printable guide
+$('printGuide').innerHTML = `<h1>Our Fraction Town — Parent Guide</h1>
+<p>Grade II Math, Unit 7 Fractions (parts of a group). Use with the 3D model. The model town has 10 buildings: 5 red (5/10 = 1/2), 3 with chimneys (3/10), 4 tall (4/10), 2 round (2/10).</p>
+<p><b>To bring for project day:</b> A3 cardboard base (1 per group), recyclable boxes / paper rolls / card, coloured pens or pencils, glue.</p>
+${STEPS.map((s,i)=>`<div class="pstep">${stepHTML(s,i,true)}</div>`).join('')}`;
+$('printBtn').onclick=()=>window.print();
+
+/* ============================================================
+   RENDER LOOP
+   ============================================================ */
+function resize(){ const w=wrap.clientWidth,h=wrap.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(wrap); resize(); updateCam();
+let last=performance.now(), tAll=0;
+function loop(now){
+  const dt=Math.min(0.05,(now-last)/1000); last=now; tAll+=dt;
+  BUILDINGS.forEach(b=>{
+    b.lift += (b.targetLift-b.lift)*Math.min(1,dt*8);
+    b.opacity += (b.targetOpacity-b.opacity)*Math.min(1,dt*8);
+    b.pulse = Math.max(0,b.pulse-dt*1.8);
+    const s=1+0.18*Math.sin(Math.min(1,b.pulse)*Math.PI);
+    b.group.scale.set(s,s,s);
+    b.group.position.y=b.lift + (b.targetLift>0?Math.sin(tAll*3+b.id)*0.05:0);
+    b.group.traverse(o=>{ if(o.material && o.material.transparent){ const base=o.material.userData.base ?? (o.material.userData.base=o.material.opacity); o.material.opacity=base*b.opacity; o.material.depthWrite=b.opacity>0.95; } });
+    if(b.ring.visible) b.ring.material.opacity=0.6+0.35*Math.sin(tAll*4);
+    b.smoke.forEach((sm,i)=>{ sm.position.y=1.2+i*0.25+Math.sin(tAll*2+i+b.id)*0.06; });
+  });
+  renderer.render(scene,camera);
+  requestAnimationFrame(loop);
+}
+goStep(window.Progress ? (Progress.get(SLUG).last || 0) : 0); refresh();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

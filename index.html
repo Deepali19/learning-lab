@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hands-On Learning Lab</title>
+<meta name="description" content="Free interactive school projects with 3D models and step-by-step parent guides.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23ff7a00'/><text x='32' y='44' font-size='34' font-family='Arial' font-weight='700' text-anchor='middle' fill='white'>½</text></svg>">
+<script src="projects.js"></script>
+<script src="assets/progress.js"></script>
+<style>
+  :root{--bg:#fff8ec;--ink:#2b2d42;--muted:#6b7280;--line:#eadfcb;--accent:#ff7a00;--green:#43a047}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+  a{color:inherit}
+  .wrap{max-width:1150px;margin:0 auto;padding:0 20px}
+  nav{background:#fff;border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;text-decoration:none}
+  .logo i{display:inline-flex;width:36px;height:36px;border-radius:10px;background:var(--accent);color:#fff;font-style:normal;align-items:center;justify-content:center;font-size:20px}
+  nav .links a{margin-left:18px;text-decoration:none;color:var(--muted);font-weight:700;font-size:15px}
+  .hero{background:linear-gradient(120deg,#ffb74d,#ff8a65);color:#fff;padding:46px 0 54px}
+  .hero h1{margin:0 0 8px;font-size:38px;line-height:1.15}
+  .hero p{margin:0;font-size:18px;opacity:.95;max-width:640px}
+  .tools{margin-top:-26px;background:#fff;border-radius:18px;box-shadow:0 6px 20px rgba(0,0,0,.08);padding:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .tools input{flex:1;min-width:200px;border:2px solid var(--line);border-radius:12px;padding:10px 14px;font:inherit;font-size:15px}
+  .tools input:focus{outline:none;border-color:var(--accent)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .chips .lbl{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-right:2px}
+  .chip{border:2px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  h2{font-size:22px;margin:30px 0 14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 3px 12px rgba(0,0,0,.05);transition:transform .15s, box-shadow .15s;text-decoration:none}
+  .card:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(0,0,0,.1)}
+  .thumb{aspect-ratio:16/9;background:#eee;display:block;width:100%;object-fit:cover}
+  .autoThumb{aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;color:#fff;padding:14px;text-align:center}
+  .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .meta{display:flex;gap:6px;flex-wrap:wrap}
+  .pill{font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;background:#fff3e0;color:#e65100}
+  .pill.s{background:#e3f2fd;color:#1565c0}
+  .pill.t{background:#f3f4f6;color:#4b5563}
+  .card h3{margin:0;font-size:19px}
+  .card p{margin:0;font-size:14.5px;color:#4b5563;line-height:1.45}
+  .prog{margin-top:auto;padding-top:8px}
+  .pbar{height:8px;border-radius:99px;background:#f1ece2;overflow:hidden}
+  .pbar i{display:block;height:100%;background:var(--green);border-radius:99px}
+  .prow{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);margin-top:6px}
+  .go{background:var(--accent);color:#fff;border-radius:999px;padding:6px 14px;font-weight:800;font-size:14px}
+  .empty{padding:40px;text-align:center;color:var(--muted);background:#fff;border-radius:18px;border:1px dashed var(--line)}
+  .how{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .how div{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}
+  .how b{display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;margin-bottom:6px}
+  .how p{margin:4px 0 0;font-size:14.5px;color:#4b5563;line-height:1.45}
+  footer{margin-top:40px;padding:24px 0 34px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a class="logo" href="index.html"><i>½</i><span id="siteName"></span></a>
+  <div class="links"><a href="#projects">Projects</a><a href="#how">How it works</a></div>
+</div></nav>
+
+<section class="hero"><div class="wrap">
+  <h1 id="heroTitle"></h1>
+  <p id="heroTag"></p>
+</div></section>
+
+<div class="wrap">
+  <div class="tools">
+    <input id="q" type="search" placeholder="Search projects (e.g. fractions, shapes)">
+    <div class="chips" id="gradeChips"><span class="lbl">Grade</span></div>
+    <div class="chips" id="subjChips"><span class="lbl">Subject</span></div>
+  </div>
+
+  <h2 id="projects">Projects</h2>
+  <div class="grid" id="grid"></div>
+
+  <h2 id="how">How it works</h2>
+  <div class="how">
+    <div><b>1</b><h3 style="margin:4px 0">Pick a project</h3><p>Find your child's grade and subject. Each project has an interactive model to explore together.</p></div>
+    <div><b>2</b><h3 style="margin:4px 0">Follow the steps</h3><p>Every step tells you what to show, what to ask, what to say, and what to try if your child gets stuck.</p></div>
+    <div><b>3</b><h3 style="margin:4px 0">Tick off progress</h3><p>Mark steps as done. Your progress is saved in this browser, so you can continue another day.</p></div>
+    <div><b>4</b><h3 style="margin:4px 0">Print if you like</h3><p>Every project has a printable parent guide for learning away from the screen.</p></div>
+  </div>
+</div>
+
+<footer><div class="wrap" id="foot"></div></footer>
+
+<script>
+const S = window.SITE, P = window.PROJECTS || [];
+document.title = S.name;
+siteName.textContent = S.name; heroTitle.textContent = S.name; heroTag.textContent = S.tagline;
+foot.innerHTML = `© ${new Date().getFullYear()} ${S.name}. ${S.footer}`;
+
+const state = { q:"", grade:"All", subject:"All" };
+const uniq = k => ["All", ...[...new Set(P.map(p=>p[k]))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}))];
+function chips(el, key, list){
+  list.forEach(v=>{ const b=document.createElement("button"); b.className="chip"+(v==="All"?" on":""); b.textContent=v;
+    b.onclick=()=>{ state[key]=v; el.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c===b)); render(); }; el.appendChild(b); });
+}
+chips(gradeChips,"grade",uniq("grade")); chips(subjChips,"subject",uniq("subject"));
+q.oninput = e => { state.q = e.target.value.toLowerCase(); render(); };
+
+const COLORS = { Math:"#ff7a00", Science:"#43a047", English:"#1e88e5", EVS:"#00897b", Art:"#8e24aa" };
+function thumb(p){
+  if(p.thumb) return `<img class="thumb" src="${p.thumb}" alt="" loading="lazy">`;
+  const c = COLORS[p.subject] || "#546e7a";
+  return `<div class="autoThumb" style="background:linear-gradient(135deg,${c},${c}bb)">${p.title}</div>`;
+}
+function render(){
+  const list = P.filter(p =>
+    (state.grade==="All" || p.grade===state.grade) &&
+    (state.subject==="All" || p.subject===state.subject) &&
+    (!state.q || [p.title,p.topic,p.description,p.subject,p.grade,...(p.tags||[])].join(" ").toLowerCase().includes(state.q))
+  );
+  if(!list.length){ grid.innerHTML = `<div class="empty">No projects match yet. Try another grade or subject.</div>`; return; }
+  grid.innerHTML = list.map(p=>{
+    const pr = Progress.get(p.slug), n = pr.done.length, t = p.steps || 0;
+    const pct = t ? Math.round(n/t*100) : 0;
+    const label = n===0 ? "Start" : (n>=t ? "Review" : "Continue");
+    const status = n===0 ? `${t} steps · ~${p.minutes||30} min` : (n>=t ? "All steps done!" : `${n} of ${t} steps done`);
+    return `<a class="card" href="${p.path}">
+      ${thumb(p)}
+      <div class="body">
+        <div class="meta"><span class="pill">${p.grade}</span><span class="pill s">${p.subject}</span>${(p.tags||[]).slice(0,2).map(t=>`<span class="pill t">${t}</span>`).join("")}</div>
+        <h3>${p.title}</h3>
+        <p><b>${p.topic}.</b> ${p.description}</p>
+        <div class="prog">
+          <div class="pbar"><i style="width:${pct}%"></i></div>
+          <div class="prow"><span>${status}</span><span class="go">${label} →</span></div>
+        </div>
+      </div></a>`;
+  }).join("");
+}
+render();
+window.addEventListener("pageshow", render); // refresh progress when coming back
+</script>
+</body>
+</html>
