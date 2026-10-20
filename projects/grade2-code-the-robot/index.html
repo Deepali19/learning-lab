@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Help Robo reach the star! Build a sequence of arrow commands, run your program and debug it if Robo hits an obstacle.">
+<title>Code the Robot – Hands-On Learning Lab</title>
+<script src="../../assets/progress.js"></script>
+<style>
+:root{--bg:#fff8ec;--ink:#2b2d42;--muted:#6b7280;--line:#eadfcb;--accent:#ff7a00;--green:#43a047;--blue:#1e88e5;--purple:#8e24aa;--red:#e53935}
+*{box-sizing:border-box}body{margin:0;font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+header{padding:14px 20px;background:linear-gradient(110deg,#ffb74d,#ff8a65);color:white;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-size:clamp(21px,3vw,29px);margin:0 0 4px}header .sub{font-size:14px}.back{color:#fff;text-decoration:none;font-weight:800;background:#ffffff30;padding:8px 12px;border-radius:999px}
+main{max-width:1250px;margin:0 auto;padding:16px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(310px,.9fr);gap:16px}@media(max-width:850px){main{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 3px 14px #0000000d}
+.maze{display:grid;grid-template-columns:repeat(5,minmax(38px,1fr));gap:5px;max-width:430px;margin:14px auto}.cell{aspect-ratio:1;border-radius:9px;background:#eef4f8;border:1px solid #d8e3eb;display:flex;align-items:center;justify-content:center;font-size:clamp(18px,4vw,29px);font-weight:800}.cell.wall{background:#65758b;color:white}.cell.start{background:#d9f3dd}.cell.goal{background:#fff0bd}.cell.robot{outline:4px solid #ff7a00;outline-offset:-4px}.commands{display:flex;flex-wrap:wrap;gap:5px;min-height:36px;padding:8px;background:#f5f7fa;border-radius:10px}.cmd{background:#e3f2fd;border-radius:8px;padding:6px 10px;font-weight:800}
+button{font:inherit;font-size:14px;font-weight:700;border:2px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);padding:8px 12px;cursor:pointer}
+button:hover{border-color:#ffb74d}button:disabled{opacity:.4;cursor:not-allowed}
+select,input{font:inherit;padding:8px;border:2px solid var(--line);border-radius:10px;max-width:100%}.primary{background:var(--green);border-color:var(--green);color:#fff}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}.muted{color:var(--muted);font-size:14px}
+#steps{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}#steps button{height:34px;width:34px;padding:0;border-radius:50%}#steps button.on{background:var(--accent);border-color:var(--accent);color:#fff}#steps button.done{background:#e8f5e9;border-color:var(--green);color:var(--green)}
+.bar{height:8px;background:#f1ece2;border-radius:99px;overflow:hidden;flex:1}.bar span{display:block;height:100%;background:var(--green);width:0}.guidehead{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--muted)}
+.blk{border-left:5px solid;border-radius:10px;padding:9px 12px;background:#fafafa;margin:9px 0}.blk h3{font-size:12px;text-transform:uppercase;letter-spacing:.6px;margin:0 0 5px}.blk p,.blk ul{font-size:14px;line-height:1.45;margin:3px 0}.blk ul{padding-left:20px}
+.show{border-color:var(--accent)}.ask{border-color:var(--blue)}.explain{border-color:var(--green)}.look{border-color:var(--purple)}.stuck{border-color:var(--red)}.callout{background:#eff7ff;border-radius:12px;padding:12px;line-height:1.5}.nav{display:flex;justify-content:space-between;gap:8px;margin-top:12px}
+#printGuide{display:none}footer{color:var(--muted);font-size:13px;padding:4px 20px 24px;text-align:center}
+@media print{header,main>.activity-card,.controls,#steps,.guidehead,.nav,#resetProgress{display:none!important}main{display:block;padding:0}.card{box-shadow:none;border:0}#printGuide{display:block;padding:0 10px;font-size:12px}#printGuide .pstep{page-break-inside:avoid;border:1px solid #ccc;border-radius:8px;padding:8px 12px;margin:8px 0}#printGuide .blk{background:white;padding:4px 10px;margin:4px 0}}
+</style>
+</head>
+<body>
+<header><div><h1>Code the Robot</h1><div class="sub">Grade 2 · Logic · Directions · Sequencing</div></div><div class="controls"><a class="back" href="../../index.html">← All projects</a><button id="printBtn">Print parent guide</button></div></header>
+<main>
+<section class="card activity-card"><h2 style="margin-top:0">Try the activity</h2><p>Help Robo reach the star! Build a sequence of arrow commands, run your program and debug it if Robo hits an obstacle.</p><div class="callout"><b>Mission:</b> guide Robo from the green start to the gold star. Grey squares are obstacles.</div><div id="maze" class="maze" role="grid" aria-label="Five by five robot maze"></div><div class="controls"><button data-cmd="U">↑ Up</button><button data-cmd="D">↓ Down</button><button data-cmd="L">← Left</button><button data-cmd="R">→ Right</button><button id="undo">Undo</button><button id="clear">Clear</button><button id="sample">Sample route</button></div><h3>My program</h3><div id="commands" class="commands">No commands yet.</div><div class="controls"><button id="run" class="primary">▶ Run program</button><button id="resetRobot">Reset robot</button></div><p id="robotMessage" class="callout" aria-live="polite">Tip: the order of commands matters.</p><p class="muted">Start: bottom-left · Goal: top-right · Avoid grey blocks.</p><div class="callout"><b>Try it away from the screen</b><br>Paper and pencil for drawing arrows, toy blocks to create a physical maze.</div></section>
+<aside class="card">
+<div class="guidehead"><span>PARENT GUIDE · STEP BY STEP</span><span id="stepCount" style="margin-left:auto"></span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:10px 0;font-size:13px;color:var(--muted)"><div class="bar"><span id="progressFill"></span></div><span id="progressText"></span></div>
+<div id="steps"></div><div id="stepBody"></div>
+<div class="nav"><button id="prevBtn">← Back</button><button id="doneBtn">Mark step done</button><button id="nextBtn" class="primary">Next →</button></div>
+<button id="resetProgress" style="margin-top:8px">Reset project progress</button>
+</aside>
+</main><div id="printGuide"></div><footer>Progress is saved only in this browser. No account is required.</footer>
+<script>
+const PROJECT={"slug":"grade2-code-the-robot","title":"Code the Robot","subtitle":"Grade 2 · Logic · Directions · Sequencing"};
+const STEPS=[{"title":"Meet the maze","goal":"Identify start, goal and obstacles.","show":"Find the green start, gold star and grey blocks.","ask":"Where does Robo start? Where must it go? Which squares are blocked?","explain":"A grid shows positions; obstacles are squares Robo cannot enter.","look":"Points out start and destination.","stuck":"Use a toy to represent Robo."},{"title":"Learn commands","goal":"Connect arrow instructions to movement.","show":"Add an arrow command. Up moves one row up; right moves one column right.","ask":"What will this arrow do? What changes if we swap two commands?","explain":"A program is an ordered list of instructions.","look":"Explains the arrow direction.","stuck":"Act out one move with your body."},{"title":"Plan a route","goal":"Break the task into small steps.","show":"Plan a path around blocks and add commands; Undo removes the last one.","ask":"Can you plan three moves ahead? How will you remember?","explain":"Planning the sequence can prevent avoidable mistakes.","look":"Uses the grid to plan.","stuck":"Load the sample then rebuild it yourself."},{"title":"Run and debug","goal":"Find and fix an incorrect instruction.","show":"Run your program. If Robo hits a wall, inspect the command that failed and adjust it.","ask":"At which step did things go wrong? Which arrow could change?","explain":"Debugging means finding and fixing a mistake.","look":"Changes a command based on evidence.","stuck":"Reset and test a shorter sequence."},{"title":"Find an efficient route","goal":"Compare routes by number of commands.","show":"Use the sample route, then try to reach the star using fewer commands.","ask":"How many commands did you use? Can a straight section be simplified?","explain":"Different programs can solve the same problem with different numbers of steps.","look":"A successful route and command count.","stuck":"Trace the route with your finger first."},{"title":"Make your own maze","goal":"Transfer sequencing to a fresh puzzle.","show":"Draw a 5×5 grid on paper with three obstacles and write a route for a family member.","ask":"Are the instructions clear? How will you test them?","explain":"Precise instructions help people and computers complete tasks.","look":"Creates and tests an ordered sequence.","stuck":"Start with a 3×3 grid."}];
+const $=id=>document.getElementById(id);
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
+let stepIndex=0;
+function markup(s,i){return '<h2 style="font-size:20px;margin:8px 0">Step '+(i+1)+': '+esc(s.title)+'</h2><p class="muted"><b>Goal:</b> '+esc(s.goal)+'</p><div class="blk show"><h3>Do</h3><p>'+esc(s.show)+'</p></div><div class="blk ask"><h3>Ask your child</h3><ul>'+s.ask.map(a=>'<li>'+esc(a)+'</li>').join('')+'</ul></div><div class="blk explain"><h3>Explain</h3><p>'+esc(s.explain)+'</p></div><div class="blk look"><h3>Listen for</h3><p>'+esc(s.look)+'</p></div><div class="blk stuck"><h3>If they get stuck</h3><p>'+esc(s.stuck)+'</p></div>';}
+function drawGuide(){
+let pr=window.Progress?Progress.get(PROJECT.slug):{done:[]};
+$("stepBody").innerHTML=markup(STEPS[stepIndex],stepIndex);
+$("stepCount").textContent=(stepIndex+1)+" of "+STEPS.length;
+$("progressText").textContent=pr.done.length+" of "+STEPS.length+" done";
+$("progressFill").style.width=Math.round(pr.done.length/STEPS.length*100)+"%";
+document.querySelectorAll("#steps button").forEach((b,i)=>{b.classList.toggle("on",i===stepIndex);b.classList.toggle("done",pr.done.includes(i));});
+$("doneBtn").textContent=pr.done.includes(stepIndex)?"Done ✓ (undo)":"Mark step done";
+$("prevBtn").disabled=stepIndex===0;$("nextBtn").textContent=stepIndex===STEPS.length-1?"Finish":"Next →";
+if(window.Progress)Progress.setLast(PROJECT.slug,stepIndex);
+}
+STEPS.forEach((s,i)=>{let b=document.createElement("button");b.textContent=i+1;b.title=s.title;b.setAttribute("aria-label","Go to step "+(i+1));b.onclick=()=>{stepIndex=i;drawGuide();};$("steps").appendChild(b);});
+$("prevBtn").onclick=()=>{stepIndex=Math.max(0,stepIndex-1);drawGuide();};
+$("nextBtn").onclick=()=>{stepIndex=Math.min(STEPS.length-1,stepIndex+1);drawGuide();};
+$("doneBtn").onclick=()=>{if(window.Progress){Progress.toggle(PROJECT.slug,stepIndex);drawGuide();}};
+$("resetProgress").onclick=()=>{if(window.Progress&&confirm("Clear saved steps for this project?")){Progress.reset(PROJECT.slug);stepIndex=0;drawGuide();}};
+$("printBtn").onclick=()=>window.print();
+$("printGuide").innerHTML="<h1>"+esc(PROJECT.title)+" — Parent Guide</h1><p>"+esc(PROJECT.subtitle)+"</p>"+STEPS.map((s,i)=>'<div class="pstep">'+markup(s,i)+'</div>').join("");
+if(window.Progress){let saved=Progress.get(PROJECT.slug);stepIndex=Math.max(0,Math.min(STEPS.length-1,saved.last||0));}
+drawGuide();
+(function(){const $=id=>document.getElementById(id),walls=new Set(["1,1","1,3","2,2","2,3","4,2"]),start={x:0,y:4},goal={x:4,y:0},arrows={U:"↑",D:"↓",L:"←",R:"→"},names={U:"up",D:"down",L:"left",R:"right"};let commands=[],pos={x:0,y:4},running=false,token=0;function draw(){let h="";for(let y=0;y<5;y++)for(let x=0;x<5;x++){let key=x+","+y,cls="cell",label="";if(walls.has(key)){cls+=" wall";label="▦";}if(x===start.x&&y===start.y){cls+=" start";label="S";}if(x===goal.x&&y===goal.y){cls+=" goal";label="★";}if(pos.x===x&&pos.y===y){cls+=" robot";label="🤖";}h+='<div class="'+cls+'" role="gridcell" aria-label="Row '+(y+1)+', column '+(x+1)+'">'+label+'</div>';} $("maze").innerHTML=h;$("commands").innerHTML=commands.length?commands.map((c,i)=>'<span class="cmd">'+(i+1)+'. '+arrows[c]+'</span>').join(""):"No commands yet.";document.querySelectorAll("[data-cmd]").forEach(b=>b.disabled=running||commands.length>=30);["undo","clear","sample"].forEach(id=>$(id).disabled=running);}function next(p,c){let n={x:p.x,y:p.y};if(c==="U")n.y--;if(c==="D")n.y++;if(c==="L")n.x--;if(c==="R")n.x++;return n;}function sleep(ms){return new Promise(r=>setTimeout(r,ms));}async function run(){if(running)return;running=true;let id=++token;pos={x:0,y:4};draw();$("robotMessage").textContent="Running…";for(let i=0;i<commands.length;i++){await sleep(330);if(id!==token)return;let n=next(pos,commands[i]);if(n.x<0||n.x>4||n.y<0||n.y>4||walls.has(n.x+","+n.y)){$("robotMessage").textContent="Blocked on command "+(i+1)+" ("+names[commands[i]]+"). Fix it and try again.";running=false;draw();return;}pos=n;draw();if(pos.x===goal.x&&pos.y===goal.y){$("robotMessage").textContent="Mission complete in "+(i+1)+" commands! Try a shorter route.";running=false;draw();return;}}running=false;$("robotMessage").textContent="Program ended before Robo reached the star. Add or change commands.";draw();}document.querySelectorAll("[data-cmd]").forEach(b=>b.onclick=()=>{if(!running){commands.push(b.dataset.cmd);draw();}});$("undo").onclick=()=>{if(!running){commands.pop();draw();}};$("clear").onclick=()=>{if(!running){commands=[];pos={x:0,y:4};draw();}};$("sample").onclick=()=>{if(!running){commands=["R","R","R","U","U","U","U","R"];pos={x:0,y:4};draw();$("robotMessage").textContent="Sample loaded. Press Run program to test it."}};$("run").onclick=run;$("resetRobot").onclick=()=>{token++;running=false;pos={x:0,y:4};draw();$("robotMessage").textContent="Robo reset to start. Your program remains here.";};draw();})();
+</script></body></html>
