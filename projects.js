@@ -1,47 +1,13 @@
-/* =====================================================================
-   SITE SETTINGS + PROJECT LIST
-   To add a project:
-     1. Copy the folder  projects/_template  and rename it (e.g. projects/grade3-clock-town)
-     2. Edit the steps inside its index.html
-     3. Add one entry to PROJECTS below (copy an existing one and change it)
-   ===================================================================== */
-
+/* Site settings and project registry for Hands-On Learning Lab. */
 window.SITE = {
   name: "Hands-On Learning Lab",
   tagline: "Interactive school projects with step-by-step guides for parents",
   footer: "Free to use. No sign-up. Progress is saved only in your own browser."
 };
-
 window.PROJECTS = [
-  {
-    slug: "grade2-fraction-town",            // must be unique; also used to save progress
-    title: "Our Fraction Town",
-    grade: "Grade 2",
-    subject: "Math",
-    topic: "Fractions as parts of a group",
-    description: "Explore a 3D town of 10 buildings. Find what fraction are red, have chimneys or are tall, then discover what \"half\" really means.",
-    path: "projects/grade2-fraction-town/index.html",
-    thumb: "projects/grade2-fraction-town/thumb.svg",
-    steps: 11,                                 // number of steps in the guide
-    minutes: 45,
-    tags: ["3D model", "Parent guide", "Printable"],
-    added: "2026-09-25"
-  }
-
-  /* Example of the next one (remove the comment marks to use):
-  ,{
-    slug: "grade2-my-new-project",
-    title: "My New Project",
-    grade: "Grade 2",
-    subject: "Science",
-    topic: "Plants",
-    description: "Short one-line description.",
-    path: "projects/grade2-my-new-project/index.html",
-    thumb: "",                                 // leave empty for an automatic picture
-    steps: 5,
-    minutes: 30,
-    tags: ["Parent guide"],
-    added: "2026-10-01"
-  }
-  */
+ {"slug":"grade2-fraction-town","title":"Our Fraction Town","grade":"Grade 2","subject":"Math","topic":"Fractions as parts of a group","description":"Explore a 3D town of 10 buildings. Find what fraction are red, have chimneys or are tall, then discover what \"half\" really means.","path":"projects/grade2-fraction-town/index.html","thumb":"projects/grade2-fraction-town/thumb.svg","steps":11,"minutes":45,"tags":["3D model","Parent guide","Printable"],"added":"2026-09-25"},
+ {"slug":"grade2-bridge-challenge","title":"The Great Bridge Challenge","grade":"Grade 2","subject":"Science","topic":"Engineering, shape and strength","description":"Design a bridge, predict how much weight it can hold, then test and improve your real paper or craft-stick bridge.","path":"projects/grade2-bridge-challenge/index.html","thumb":"projects/grade2-bridge-challenge/thumb.svg","steps":6,"minutes":35,"tags":["Build & test","Parent guide","Printable"],"added":"2026-10-20"},
+ {"slug":"grade2-pizza-shop","title":"Pizza Shop Maths Mission","grade":"Grade 2","subject":"Math","topic":"Fractions, sharing and money","description":"Run a pretend pizza shop: make equal slices, fulfil customer orders, total bills and give the right change.","path":"projects/grade2-pizza-shop/index.html","thumb":"projects/grade2-pizza-shop/thumb.svg","steps":7,"minutes":30,"tags":["Interactive game","Fractions","Parent guide"],"added":"2026-10-20"},
+ {"slug":"grade2-code-the-robot","title":"Code the Robot","grade":"Grade 2","subject":"Math","topic":"Directions, sequencing and debugging","description":"Program a friendly robot through a grid maze using arrows. Find a route, fix bugs and try a harder level.","path":"projects/grade2-code-the-robot/index.html","thumb":"projects/grade2-code-the-robot/thumb.svg","steps":6,"minutes":25,"tags":["Coding","Logic game","Parent guide"],"added":"2026-10-20"},
+ {"slug":"grade2-paper-airplane-olympics","title":"Paper Airplane Olympics","grade":"Grade 2","subject":"Science","topic":"Measurement, fair tests and data","description":"Fold, fly and compare paper airplane designs. Record distances, find the longest flight and plan a fair family tournament.","path":"projects/grade2-paper-airplane-olympics/index.html","thumb":"projects/grade2-paper-airplane-olympics/thumb.svg","steps":6,"minutes":35,"tags":["Hands-on experiment","Measurement","Printable"],"added":"2026-10-20"}
 ];
