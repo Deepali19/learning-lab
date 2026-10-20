@@ -572,7 +572,7 @@ function goStep(i){
   if(window.Progress) Progress.setLast(SLUG, stepIdx);
   renderProgress();
 }
-const SLUG='grade2-fraction-town';
+const SLUG='All ages-fraction-town';
 function renderProgress(){
   const done = window.Progress ? Progress.get(SLUG).done : [];
   document.querySelectorAll('#steps button').forEach((b,j)=>b.classList.toggle('done',done.includes(j)));
