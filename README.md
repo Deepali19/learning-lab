@@ -29,7 +29,7 @@ learning-lab/
 ├─ assets/
 │   └─ progress.js                     Saves "steps done" in the visitor's browser
 └─ projects/
-    ├─ grade2-fraction-town/
+    ├─ young learners-fraction-town/
     │   ├─ index.html                  The 3D Fraction Town project + parent guide
     │   └─ thumb.svg                   Picture shown on the home page card
     └─ _template/
@@ -104,7 +104,7 @@ This works the same way as Netlify: go to Workers & Pages → Create → Pages �
 
 ## 6. Phase 4: Add a new project (about 30–60 min each)
 
-1. **Copy the template.** Duplicate `projects/_template` and rename it with lowercase letters and dashes, e.g. `projects/grade2-shapes-park`.
+1. **Copy the template.** Duplicate `projects/_template` and rename it with lowercase letters and dashes, e.g. `projects/young learners-shapes-park`.
 2. **Edit the new `index.html`:**
    - At the top of the script, set `PROJECT.slug` to match the folder name, then set the title and subtitle.
    - Write the steps in `STEPS`. Each step has: title, goal, show, ask (a list), explain, look, stuck.
