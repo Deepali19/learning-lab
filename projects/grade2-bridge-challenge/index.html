@@ -44,7 +44,7 @@ const STEPS=[{"title":"Meet the bridge problem","goal":"Understand that a bridge
 const $=id=>document.getElementById(id);
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
 let stepIndex=0;
-function markup(s,i){return '<h2 style="font-size:20px;margin:8px 0">Step '+(i+1)+': '+esc(s.title)+'</h2><p class="muted"><b>Goal:</b> '+esc(s.goal)+'</p><div class="blk show"><h3>Do</h3><p>'+esc(s.show)+'</p></div><div class="blk ask"><h3>Ask your child</h3><ul>'+s.ask.map(a=>'<li>'+esc(a)+'</li>').join('')+'</ul></div><div class="blk explain"><h3>Explain</h3><p>'+esc(s.explain)+'</p></div><div class="blk look"><h3>Listen for</h3><p>'+esc(s.look)+'</p></div><div class="blk stuck"><h3>If they get stuck</h3><p>'+esc(s.stuck)+'</p></div>';}
+function markup(s,i){let asks=Array.isArray(s.ask)?s.ask:String(s.ask).split("?").map(q=>q.trim()).filter(Boolean).map(q=>q+"?");return '<h2 style="font-size:20px;margin:8px 0">Step '+(i+1)+': '+esc(s.title)+'</h2><p class="muted"><b>Goal:</b> '+esc(s.goal)+'</p><div class="blk show"><h3>Do</h3><p>'+esc(s.show)+'</p></div><div class="blk ask"><h3>Ask your child</h3><ul>'+asks.map(a=>'<li>'+esc(a)+'</li>').join('')+'</ul></div><div class="blk explain"><h3>Explain</h3><p>'+esc(s.explain)+'</p></div><div class="blk look"><h3>Listen for</h3><p>'+esc(s.look)+'</p></div><div class="blk stuck"><h3>If they get stuck</h3><p>'+esc(s.stuck)+'</p></div>';}
 function drawGuide(){
 let pr=window.Progress?Progress.get(PROJECT.slug):{done:[]};
 $("stepBody").innerHTML=markup(STEPS[stepIndex],stepIndex);
